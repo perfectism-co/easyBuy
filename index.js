@@ -14,7 +14,19 @@ app.use(express.json())
 app.use(cors())
 
 // Multer 設定：記憶體儲存，圖片轉成 Buffer 存在 req.files
-const upload = multer({ storage: multer.memoryStorage() })
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 限制每張圖最大 5MB
+    files: 5 // 最多 5 張圖
+  }
+})
+
+//加上全域錯誤處理
+app.use((err, req, res, next) => {
+  console.error('❌ 全域錯誤:', err)
+  res.status(500).json({ message: 'Server error', error: err.message })
+})
 
 // ✅ 根目錄供 Render 健康檢查
 app.get('/', (req, res) => {
@@ -235,23 +247,50 @@ app.delete('/order/:orderId', authenticateToken, async (req, res) => {
 
 // 新增評論（支援圖片上傳至 MongoDB）
 app.post('/order/:orderId/review', authenticateToken, upload.array('images', 5), async (req, res) => {
-  const { comment, rating } = req.body
-  const user = await User.findById(req.user.id)
-  if (!user) return res.status(404).json({ message: 'User not found' })
-  const order = user.orders.id(req.params.orderId)
-  if (!order) return res.status(404).json({ message: 'Order not found' })
-  if (order.review) return res.status(400).json({ message: 'Review already exists' })
-  if (!rating || rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be 1~5' })
+  try {
+    const { comment, rating } = req.body
 
-  order.review = {
-    comment: comment || '',
-    rating: parseInt(rating),
-    imageFiles: req.files.map(f => f.buffer)
+    // 基本欄位檢查
+    if (!rating || isNaN(rating) || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be a number from 1 to 5' })
+    }
+
+    // 找使用者與訂單
+    const user = await User.findById(req.user.id)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    const order = user.orders.id(req.params.orderId)
+    if (!order) return res.status(404).json({ message: 'Order not found' })
+
+    // 檢查是否已經有評論（更嚴謹）
+    if (order.review && (
+        order.review.comment?.length > 0 ||
+        order.review.rating ||
+        (order.review.imageFiles && order.review.imageFiles.length > 0)
+      )
+    ) {
+      return res.status(400).json({ message: 'Review already exists' })
+    }
+
+    // 處理圖片
+    const imageBuffers = (req.files || []).map(file => file.buffer)
+
+    // 新增評論資料
+    order.review = {
+      comment: comment || '',
+      rating: parseInt(rating),
+      imageFiles: imageBuffers
+    }
+
+    await user.save()
+    res.json({ message: 'Review added successfully' })
+
+  } catch (err) {
+    console.error('❌ Error in POST /review:', err)
+    res.status(500).json({ message: 'Server error', error: err.message })
   }
-
-  await user.save()
-  res.json({ message: 'Review added' })
 })
+
 
 // 刪除評論
 app.delete('/order/:orderId/review', authenticateToken, async (req, res) => {
