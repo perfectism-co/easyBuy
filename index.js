@@ -1,0 +1,280 @@
+// server.js
+
+import express from 'express'
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+import cors from 'cors'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import multer from 'multer'
+
+dotenv.config()
+const app = express()
+app.use(express.json())
+app.use(cors())
+
+// Multer 設定：記憶體儲存，圖片轉成 Buffer 存在 req.files
+const upload = multer({ storage: multer.memoryStorage() })
+
+// ✅ 根目錄供 Render 健康檢查
+app.get('/', (req, res) => {
+  res.send('✅ Server is running')
+})
+
+// ✅ 使用環境變數 PORT（Render 會自動提供）
+const PORT = process.env.PORT || 3000
+
+// 🧠 MongoDB 連線成功後才啟動伺服器
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log('✅ Connected to MongoDB')
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`)
+    })
+  })
+  .catch(err => console.error('❌ MongoDB connection error:', err))
+
+// 假商品資料庫
+const fakeProductDatabase = {
+  '123': { name: 'T-shirt', imageUrl: 'https://example.com/tshirt.jpg', price: 500 },
+  '456': { name: 'Sneakers', imageUrl: 'https://example.com/sneakers.jpg', price: 2000 },
+  '789': { name: 'Cap', imageUrl: 'https://example.com/cap.jpg', price: 300 }
+}
+
+// Schemas
+const orderSchema = new mongoose.Schema({
+  products: [{ productId: String, name: String, imageUrl: String, price: Number, quantity: Number }],
+  shippingMethod: { type: String, enum: ['超商取貨', '宅配'] },
+  createdAt: Date,
+  totalAmount: Number,
+  shippingFee: Number,
+  coupon: { code: String, discount: Number },
+  review: {
+    comment: String,
+    rating: { type: Number, min: 1, max: 5 },
+    imageFiles: [Buffer]
+  }
+})
+
+const userSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+  orders: [orderSchema],
+  refreshTokens: [String]
+})
+
+const User = mongoose.model('User', userSchema)
+
+// JWT 工具
+function generateAccessToken(user) {
+  return jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' })
+}
+function generateRefreshToken(user) {
+  return jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN_SECRET)
+}
+
+// 身份驗證 middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  if (!token) return res.sendStatus(401)
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403)
+    req.user = user
+    next()
+  })
+}
+
+// 註冊
+app.post('/register', async (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) return res.status(400).json({ message: 'Email and password required' })
+  const existing = await User.findOne({ email })
+  if (existing) return res.status(400).json({ message: 'Email already registered' })
+  const hashed = await bcrypt.hash(password, 10)
+  await new User({ email, password: hashed }).save()
+  res.json({ message: 'User registered' })
+})
+
+// 登入
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body
+  const user = await User.findOne({ email })
+  if (!user || !(await bcrypt.compare(password, user.password)))
+    return res.status(403).json({ message: 'Invalid credentials' })
+  const accessToken = generateAccessToken(user)
+  const refreshToken = generateRefreshToken(user)
+  user.refreshTokens.push(refreshToken)
+  await user.save()
+  res.json({ accessToken, refreshToken })
+})
+
+// refresh token
+app.post('/refresh', async (req, res) => {
+  const token = req.headers['x-refresh-token']
+  if (!token) return res.sendStatus(401)
+  const user = await User.findOne({ refreshTokens: token })
+  if (!user) return res.sendStatus(403)
+  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
+    if (err) return res.sendStatus(403)
+    const accessToken = generateAccessToken({ _id: decoded.id })
+    const newRefreshToken = generateRefreshToken({ _id: decoded.id })
+    user.refreshTokens = user.refreshTokens.filter(t => t !== token)
+    user.refreshTokens.push(newRefreshToken)
+    await user.save()
+    res.json({ accessToken, refreshToken: newRefreshToken })
+  })
+})
+
+// 登出
+app.post('/logout', async (req, res) => {
+  const { token } = req.body
+  if (!token) return res.sendStatus(400)
+  const user = await User.findOne({ refreshTokens: token })
+  if (!user) return res.sendStatus(403)
+  user.refreshTokens = user.refreshTokens.filter(t => t !== token)
+  await user.save()
+  res.json({ message: 'Logged out successfully' })
+})
+
+// 取得使用者資料（含 orders + review 圖片 URL）
+app.get('/me', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+  const orders = user.orders.map(o => ({
+    _id: o._id,
+    products: o.products,
+    shippingMethod: o.shippingMethod,
+    createdAt: o.createdAt,
+    totalAmount: o.totalAmount,
+    shippingFee: o.shippingFee,
+    coupon: o.coupon,
+    review: o.review
+      ? {
+          comment: o.review.comment,
+          rating: o.review.rating,
+          imageUrls: o.review.imageFiles.map((_, i) =>
+            `${req.protocol}://${req.get('host')}/order/${o._id}/review/image/${i}`
+          )
+        }
+      : null
+  }))
+  res.json({ id: user._id, email: user.email, orders })
+})
+
+// 建立訂單
+app.post('/order', authenticateToken, async (req, res) => {
+  const { products, shippingMethod, shippingFee, coupon } = req.body
+  if (!products || !products.length) return res.status(400).json({ message: 'Products required' })
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+
+  const fullProducts = []
+  let totalAmount = 0
+
+  for (const p of products) {
+    const info = fakeProductDatabase[p.productId]
+    if (!info) return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
+    fullProducts.push({ ...info, productId: p.productId, quantity: p.quantity })
+    totalAmount += info.price * p.quantity
+  }
+
+  if (typeof shippingFee === 'number') totalAmount += shippingFee
+  if (coupon?.discount) totalAmount -= coupon.discount
+
+  user.orders.push({ products: fullProducts, shippingMethod, createdAt: new Date(), totalAmount, shippingFee, coupon })
+  await user.save()
+  const o = user.orders[user.orders.length - 1]
+  res.json({ message: 'Order created', orderId: o._id })
+})
+
+// 修改訂單
+app.put('/order/:orderId', authenticateToken, async (req, res) => {
+  const { products, shippingMethod, shippingFee, coupon } = req.body
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+  const order = user.orders.id(req.params.orderId)
+  if (!order) return res.status(404).json({ message: 'Order not found' })
+
+  const fullProducts = []
+  let totalAmount = 0
+
+  for (const p of products) {
+    const info = fakeProductDatabase[p.productId]
+    if (!info) return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
+    fullProducts.push({ ...info, productId: p.productId, quantity: p.quantity })
+    totalAmount += info.price * p.quantity
+  }
+
+  if (typeof shippingFee === 'number') totalAmount += shippingFee
+  if (coupon?.discount) totalAmount -= coupon.discount
+
+  order.products = fullProducts
+  order.shippingMethod = shippingMethod
+  order.shippingFee = shippingFee
+  order.totalAmount = totalAmount
+  order.coupon = coupon
+  order.createdAt = new Date()
+
+  await user.save()
+  res.json({ message: 'Order updated' })
+})
+
+// 刪除訂單
+app.delete('/order/:orderId', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+  const lenBefore = user.orders.length
+  user.orders = user.orders.filter(o => o._id.toString() !== req.params.orderId)
+  if (user.orders.length === lenBefore) return res.status(404).json({ message: 'Order not found' })
+  await user.save()
+  res.json({ message: 'Order deleted' })
+})
+
+// 新增評論（支援圖片上傳至 MongoDB）
+app.post('/order/:orderId/review', authenticateToken, upload.array('images', 5), async (req, res) => {
+  const { comment, rating } = req.body
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+  const order = user.orders.id(req.params.orderId)
+  if (!order) return res.status(404).json({ message: 'Order not found' })
+  if (order.review) return res.status(400).json({ message: 'Review already exists' })
+  if (!rating || rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be 1~5' })
+
+  order.review = {
+    comment: comment || '',
+    rating: parseInt(rating),
+    imageFiles: req.files.map(f => f.buffer)
+  }
+
+  await user.save()
+  res.json({ message: 'Review added' })
+})
+
+// 刪除評論
+app.delete('/order/:orderId/review', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+  const order = user.orders.id(req.params.orderId)
+  if (!order || !order.review) return res.status(404).json({ message: 'Review not found' })
+  order.review = undefined
+  await user.save()
+  res.json({ message: 'Review deleted' })
+})
+
+// 取得圖片串流
+app.get('/order/:orderId/review/image/:index', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+  const order = user.orders.id(req.params.orderId)
+  if (!order || !order.review) return res.status(404).json({ message: 'Review not found' })
+  const image = order.review.imageFiles[req.params.index]
+  if (!image) return res.status(404).json({ message: 'Image not found' })
+
+  res.set('Content-Type', 'image/jpeg')
+  res.send(image)
+})
+
+
