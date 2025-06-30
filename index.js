@@ -48,12 +48,16 @@ mongoose
   })
   .catch(err => console.error('❌ MongoDB connection error:', err))
 
-// 假商品資料庫
-const fakeProductDatabase = {
-  '123': { name: 'T-shirt', imageUrl: 'https://example.com/tshirt.jpg', price: 500 },
-  '456': { name: 'Sneakers', imageUrl: 'https://example.com/sneakers.jpg', price: 2000 },
-  '789': { name: 'Cap', imageUrl: 'https://example.com/cap.jpg', price: 300 }
+//假商品資料  
+let fakeProductDatabase = {}
+
+const loadFakeProducts = async () => {
+  const res = await fetch('https://raw.githubusercontent.com/perfectism-co/easyBuy/main/fakeProductDatabase.json')
+  fakeProductDatabase = await res.json()
 }
+
+await loadFakeProducts()
+
 
 // 假優惠券資料庫
 const fakeCouponDatabase = {
