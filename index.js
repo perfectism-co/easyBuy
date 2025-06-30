@@ -55,6 +55,21 @@ const fakeProductDatabase = {
   '789': { name: 'Cap', imageUrl: 'https://example.com/cap.jpg', price: 300 }
 }
 
+// 假優惠券資料庫
+const fakeCouponDatabase = {
+  '123': { code: 折扣20, discount: 20 },
+  '456': { code: 折扣100, discount: 100 },
+  '789': { code: 折扣200, discount: 200 }
+}
+
+// 假運費資料庫
+const fakeShippingFeeDatabase = {
+  '123': { shippingMethod: 超商, ShippingFee: 60 },
+  '456': { shippingMethod: 宅配, ShippingFee: 100 },
+  '789': { shippingMethod: 自取, ShippingFee: 0 }
+}
+
+
 // Schemas
 const orderSchema = new mongoose.Schema({
   products: [{ productId: String, name: String, imageUrl: String, price: Number, quantity: Number }],
@@ -178,7 +193,19 @@ app.get('/me', authenticateToken, async (req, res) => {
 
 // 建立訂單
 app.post('/order', authenticateToken, async (req, res) => {
-  const { products, shippingMethod, shippingFee, coupon } = req.body
+  const { products, couponId, shippingId } = req.body
+
+  // 根據 id 從 fake 資料庫取資料
+  const coupon = fakeCouponDatabase[couponId] || null
+  const shippingData = fakeShippingFeeDatabase[shippingId] || null
+
+  if (!shippingData) {
+    return res.status(400).json({ message: `Invalid shippingId: ${shippingId}` })
+  }
+
+  const shippingMethod = shippingData.shippingMethod
+  const shippingFee = shippingData.ShippingFee
+
   if (!products || !products.length) return res.status(400).json({ message: 'Products required' })
   const user = await User.findById(req.user.id)
   if (!user) return res.status(404).json({ message: 'User not found' })
@@ -193,8 +220,9 @@ app.post('/order', authenticateToken, async (req, res) => {
     totalAmount += info.price * p.quantity
   }
 
-  if (typeof shippingFee === 'number') totalAmount += shippingFee
+  totalAmount += shippingFee
   if (coupon?.discount) totalAmount -= coupon.discount
+
 
   user.orders.push({ products: fullProducts, shippingMethod, createdAt: new Date(), totalAmount, shippingFee, coupon })
   await user.save()
