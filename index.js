@@ -57,16 +57,16 @@ const fakeProductDatabase = {
 
 // 假優惠券資料庫
 const fakeCouponDatabase = {
-  '123': { code: 折扣20, discount: 20 },
-  '456': { code: 折扣100, discount: 100 },
-  '789': { code: 折扣200, discount: 200 }
+  '123': { code: '折扣20', discount: 20 },
+  '456': { code: '折扣100', discount: 100 },
+  '789': { code: '折扣200', discount: 200 }
 }
 
 // 假運費資料庫
 const fakeShippingFeeDatabase = {
-  '123': { shippingMethod: 超商, ShippingFee: 60 },
-  '456': { shippingMethod: 宅配, ShippingFee: 100 },
-  '789': { shippingMethod: 自取, ShippingFee: 0 }
+  '123': { shippingMethod: '超商', ShippingFee: 60 },
+  '456': { shippingMethod: '宅配', ShippingFee: 100 },
+  '789': { shippingMethod: '自取', ShippingFee: 0 }
 }
 
 
