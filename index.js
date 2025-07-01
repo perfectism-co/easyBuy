@@ -70,7 +70,7 @@ const fakeShippingFeeDatabase = {
 // Schemas
 const orderSchema = new mongoose.Schema({
   products: [{ productId: String, name: String, imageUrl: String, price: Number, quantity: Number }],
-  shippingMethod: { type: String, enum: ['超商取貨', '宅配'] },
+  shippingMethod: String,
   createdAt: Date,
   totalAmount: Number,
   shippingFee: Number,
