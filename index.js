@@ -89,10 +89,18 @@ const orderSchema = new mongoose.Schema({
   }
 })
 
+const cartSchema = new mongoose.Schema({
+  products: [{ productId: String, name: String, imageUrl: String, price: Number, quantity: Number }]
+})
+
 const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   orders: [orderSchema],
+  cart: {
+    type: cartSchema,
+    default: { products: [] } // 👈 預設為空購物車
+  },
   refreshTokens: [String]
 })
 
@@ -195,6 +203,78 @@ app.get('/me', authenticateToken, async (req, res) => {
   res.json({ id: user._id, email: user.email, orders })
 })
 
+// 加到購物車
+app.post('/cart', authenticateToken, async (req, res) => {
+  const { products } = req.body
+
+  if (!products || !products.length) return res.status(400).json({ message: 'Products required' })
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+
+  const fullProducts = []
+  
+  for (const p of products) {
+    const info = fakeProductDatabase[p.productId]
+    if (!info) return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
+    fullProducts.push({ ...info, productId: p.productId, quantity: p.quantity })
+  }
+
+  user.cart.products.push(...fullProducts)
+  await user.save()
+  res.json({ message: 'Add to cart successfully' })
+})
+
+// 商品從購物車刪除（可刪１～多個商品)
+app.delete('/cart', authenticateToken, async (req, res) => {
+  const { productIds } = req.body
+
+  if (!Array.isArray(productIds) || productIds.length === 0) {
+    return res.status(400).json({ message: 'productIds must be a non-empty array' })
+  }
+
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+
+  const cart = user.cart
+  const originalCount = cart.products.length
+
+  // 過濾掉被刪除的商品
+  cart.products = cart.products.filter(p => !productIds.includes(p.productId))
+
+  const deletedCount = originalCount - cart.products.length
+
+  if (deletedCount === 0) {
+    return res.status(404).json({ message: 'No matching products found in cart' })
+  }
+
+  await user.save()
+  res.json({ message: `🗑️ Deleted ${deletedCount} product(s) from cart` })
+})
+
+
+// 改某商品訂購數量
+app.put('/cart/:productId', authenticateToken, async (req, res) => {
+  const { quantity } = req.body
+  if (typeof quantity !== 'number' || quantity < 1) {
+    return res.status(400).json({ message: 'Invalid quantity' })
+  }
+
+  const user = await User.findById(req.user.id)
+  if (!user) return res.status(404).json({ message: 'User not found' })
+
+  const cart = user.cart[0]
+  if (!cart) return res.status(404).json({ message: 'Cart not found' })
+
+  const item = cart.products.find(p => p.productId === req.params.productId)
+  if (!item) return res.status(404).json({ message: 'Product not in cart' })
+
+  item.quantity = quantity
+
+  await user.save()
+  res.json({ message: 'Cart updated' })
+})
+
+
 // 建立訂單
 app.post('/order', authenticateToken, async (req, res) => {
   const { products, couponId, shippingId } = req.body
@@ -276,6 +356,7 @@ app.delete('/order/:orderId', authenticateToken, async (req, res) => {
   await user.save()
   res.json({ message: 'Order deleted' })
 })
+
 
 // 新增評論（支援圖片上傳至 MongoDB）
 app.post('/order/:orderId/review', authenticateToken, upload.array('images', 5), async (req, res) => {
