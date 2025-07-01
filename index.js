@@ -200,7 +200,15 @@ app.get('/me', authenticateToken, async (req, res) => {
         }
       : null
   }))
-  res.json({ id: user._id, email: user.email, orders })
+  // ✅ 新增 cart 回傳
+  const cart = user.cart?.products || []  // cart 是單一物件
+
+  res.json({
+    id: user._id,
+    email: user.email,
+    orders,
+    cart // ✅ 加上這一行
+  })
 })
 
 // 加到購物車
