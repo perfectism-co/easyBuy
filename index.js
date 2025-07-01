@@ -36,20 +36,7 @@ app.get('/', (req, res) => {
 // ✅ 使用環境變數 PORT（Render 會自動提供）
 const PORT = process.env.PORT || 3000
 
-// 🧠 MongoDB 連線成功後才啟動伺服器
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => {
-    console.log('✅ Connected to MongoDB')
-    
-    // 載入假商品資料（非同步但不阻擋啟動）✅ 在 MongoDB 連線成功後，再載入資料
-    await loadFakeProducts()
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`)
-    })
-  })
-  .catch(err => console.error('❌ MongoDB connection error:', err))
 
 //假商品資料  
 let fakeProductDatabase = {}
@@ -64,9 +51,6 @@ const loadFakeProducts = async () => {
     fakeProductDatabase = {} // 設為空物件避免 crash
   }
 }
-
-
-
 
 // 假優惠券資料庫
 const fakeCouponDatabase = {
@@ -450,3 +434,21 @@ app.get('/order/:orderId/review/image/:index', authenticateToken, async (req, re
 })
 
 
+// 🧠 MongoDB 連線成功後才啟動伺服器
+// ✅ 啟動伺服器，包成 async function 避免 top-level await 問題
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL)
+    console.log('✅ Connected to MongoDB')
+
+    await loadFakeProducts()
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`)
+    })
+  } catch (err) {
+    console.error('❌ Server 啟動失敗:', err)
+  }
+}
+
+startServer()
