@@ -41,6 +41,9 @@ mongoose
   .connect(process.env.MONGO_URL)
   .then(() => {
     console.log('✅ Connected to MongoDB')
+    
+    // 載入假商品資料（非同步但不阻擋啟動）✅ 在 MongoDB 連線成功後，再載入資料
+    await loadFakeProducts()
 
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`)
@@ -52,11 +55,17 @@ mongoose
 let fakeProductDatabase = {}
 
 const loadFakeProducts = async () => {
-  const res = await fetch('https://raw.githubusercontent.com/perfectism-co/easyBuy/main/fakeProductDatabase.json')
-  fakeProductDatabase = await res.json()
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/perfectism-co/easyBuy/main/fakeProductDatabase.json')
+    fakeProductDatabase = await res.json()
+    console.log('✅ 假商品資料載入成功')
+  } catch (err) {
+    console.error('❌ 假商品資料載入失敗:', err.message)
+    fakeProductDatabase = {} // 設為空物件避免 crash
+  }
 }
 
-await loadFakeProducts()
+
 
 
 // 假優惠券資料庫
