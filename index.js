@@ -263,6 +263,7 @@ app.delete('/cart', authenticateToken, async (req, res) => {
 // 改某商品訂購數量
 app.put('/cart/:productId', authenticateToken, async (req, res) => {
   const { quantity } = req.body
+
   if (typeof quantity !== 'number' || quantity < 1) {
     return res.status(400).json({ message: 'Invalid quantity' })
   }
@@ -270,16 +271,18 @@ app.put('/cart/:productId', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id)
   if (!user) return res.status(404).json({ message: 'User not found' })
 
-  const cart = user.cart[0]
-  if (!cart) return res.status(404).json({ message: 'Cart not found' })
+  // ✅ 防呆
+  if (!user.cart) {
+    user.cart = { products: [] }
+  }
 
-  const item = cart.products.find(p => p.productId === req.params.productId)
+  const item = user.cart.products.find(p => p.productId === req.params.productId)
   if (!item) return res.status(404).json({ message: 'Product not in cart' })
 
   item.quantity = quantity
-
   await user.save()
-  res.json({ message: 'Cart updated' })
+
+  res.json({ message: 'Cart updated successfully' })
 })
 
 
