@@ -242,7 +242,7 @@ app.post('/cart', authenticateToken, async (req, res) => {
 
   res.json({
     message: 'Add to cart successfully',
-    cart: user.cart.products // 👈 回傳最新購物車（可選）
+    cart: user.cart   // 👈 回傳最新購物車（可選）
   })
 })
 
