@@ -204,26 +204,48 @@ app.get('/me', authenticateToken, async (req, res) => {
   })
 })
 
-// 加到購物車
+// ✅ 自動合併相同 productId 的商品進購物車
 app.post('/cart', authenticateToken, async (req, res) => {
-  const { products } = req.body
+  const { products } = req.body;
 
-  if (!products || !products.length) return res.status(400).json({ message: 'Products required' })
-  const user = await User.findById(req.user.id)
-  if (!user) return res.status(404).json({ message: 'User not found' })
-
-  const fullProducts = []
-  
-  for (const p of products) {
-    const info = fakeProductDatabase[p.productId]
-    if (!info) return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
-    fullProducts.push({ ...info, productId: p.productId, quantity: p.quantity })
+  if (!products || !products.length) {
+    return res.status(400).json({ message: 'Products required' });
   }
 
-  user.cart.products.push(...fullProducts)
-  await user.save()
-  res.json({ message: 'Add to cart successfully' })
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  for (const p of products) {
+    const info = fakeProductDatabase[p.productId];
+    if (!info) {
+      return res.status(400).json({ message: `Invalid productId: ${p.productId}` });
+    }
+
+    const existing = user.cart.products.find(item => item.productId === p.productId);
+
+    if (existing) {
+      // ✅ 合併數量
+      existing.quantity += p.quantity;
+    } else {
+      // ❇️ 新增新商品
+      user.cart.products.push({
+        ...info,
+        productId: p.productId,
+        quantity: p.quantity
+      });
+    }
+  }
+
+  await user.save();
+
+  res.json({
+    message: 'Add to cart successfully',
+    cart: user.cart.products // 👈 回傳最新購物車（可選）
+  })
 })
+
 
 // 商品從購物車刪除（可刪１～多個商品)
 app.delete('/cart', authenticateToken, async (req, res) => {
