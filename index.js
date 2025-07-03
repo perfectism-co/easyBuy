@@ -204,6 +204,18 @@ app.get('/me', authenticateToken, async (req, res) => {
   })
 })
 
+// 回傳所有運送方式（假資料庫）
+app.get('/shipping-options', (req, res) => {
+  res.json(fakeShippingFeeDatabase)
+})
+
+// 回傳所有優惠券（假資料庫）
+app.get('/coupons', (req, res) => {
+  res.json(fakeCouponDatabase)
+})
+
+
+
 // ✅ 自動合併相同 productId 的商品進購物車
 app.post('/cart', authenticateToken, async (req, res) => {
   const { products } = req.body;
@@ -305,7 +317,7 @@ app.put('/cart/:productId', authenticateToken, async (req, res) => {
 app.post('/order', authenticateToken, async (req, res) => {
   const { products, couponId, shippingId } = req.body
 
-  // 根據 id 從 fake 資料庫取資料
+  // 從假資料庫取得優惠與運送資訊
   const coupon = fakeCouponDatabase[couponId] || null
   const shippingData = fakeShippingFeeDatabase[shippingId] || null
 
@@ -316,29 +328,63 @@ app.post('/order', authenticateToken, async (req, res) => {
   const shippingMethod = shippingData.shippingMethod
   const shippingFee = shippingData.ShippingFee
 
-  if (!products || !products.length) return res.status(400).json({ message: 'Products required' })
+  if (!products || !products.length) {
+    return res.status(400).json({ message: 'Products required' })
+  }
+
   const user = await User.findById(req.user.id)
-  if (!user) return res.status(404).json({ message: 'User not found' })
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' })
+  }
 
   const fullProducts = []
   let totalAmount = 0
 
   for (const p of products) {
     const info = fakeProductDatabase[p.productId]
-    if (!info) return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
-    fullProducts.push({ ...info, productId: p.productId, quantity: p.quantity })
+    if (!info) {
+      return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
+    }
+
+    // ✅ 將完整商品資訊加入訂單
+    fullProducts.push({
+      ...info,
+      productId: p.productId,
+      quantity: p.quantity
+    })
+
+    // ✅ 計算金額
     totalAmount += info.price * p.quantity
+
+    // ✅ 從購物車移除這筆商品（整筆刪除）
+    user.cart.products = user.cart.products.filter(item => item.productId !== p.productId)
   }
 
   totalAmount += shippingFee
-  if (coupon?.discount) totalAmount -= coupon.discount
+  if (coupon?.discount) {
+    totalAmount -= coupon.discount
+  }
 
+  // ✅ 建立訂單並推入 user.orders
+  user.orders.push({
+    products: fullProducts,
+    shippingMethod,
+    createdAt: new Date(),
+    totalAmount,
+    shippingFee,
+    coupon
+  })
 
-  user.orders.push({ products: fullProducts, shippingMethod, createdAt: new Date(), totalAmount, shippingFee, coupon })
   await user.save()
+
   const o = user.orders[user.orders.length - 1]
-  res.json({ message: 'Order created', orderId: o._id })
+
+  res.json({
+    message: 'Order created',
+    orderId: o._id
+  })
 })
+
 
 // 修改訂單
 app.put('/order/:orderId', authenticateToken, async (req, res) => {
