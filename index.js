@@ -188,7 +188,7 @@ app.get('/me', authenticateToken, async (req, res) => {
           comment: o.review.comment,
           rating: o.review.rating,
           imageUrls: o.review.imageFiles.map((_, i) =>
-            `${req.protocol}://${req.get('host')}/order/${o._id}/review/image/${i}`
+            `https://${req.get('host')}/order/${o._id}/review/image/${i}`
           )
         }
       : null
