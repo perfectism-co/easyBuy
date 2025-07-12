@@ -388,35 +388,77 @@ app.post('/order', authenticateToken, async (req, res) => {
 
 // 修改訂單
 app.put('/order/:orderId', authenticateToken, async (req, res) => {
-  const { products, shippingMethod, shippingFee, coupon } = req.body
+  const { products, couponId, shippingId } = req.body
+
+  // ✅ 從假資料庫查出運送與折扣資訊
+  const coupon = fakeCouponDatabase[couponId] || null
+  const shippingData = fakeShippingFeeDatabase[shippingId] || null
+
+  if (!shippingData) {
+    return res.status(400).json({ message: `Invalid shippingId: ${shippingId}` })
+  }
+
+  const shippingMethod = shippingData.shippingMethod
+  const shippingFee = shippingData.ShippingFee
+
+  // ✅ 驗證使用者與訂單
   const user = await User.findById(req.user.id)
   if (!user) return res.status(404).json({ message: 'User not found' })
+
   const order = user.orders.id(req.params.orderId)
   if (!order) return res.status(404).json({ message: 'Order not found' })
 
+  // ✅ 處理商品資訊
   const fullProducts = []
   let totalAmount = 0
 
   for (const p of products) {
     const info = fakeProductDatabase[p.productId]
-    if (!info) return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
+    if (!info) {
+      return res.status(400).json({ message: `Invalid productId: ${p.productId}` })
+    }
+
     fullProducts.push({ ...info, productId: p.productId, quantity: p.quantity })
     totalAmount += info.price * p.quantity
   }
 
-  if (typeof shippingFee === 'number') totalAmount += shippingFee
-  if (coupon?.discount) totalAmount -= coupon.discount
+  // ✅ 加上運費
+  if (typeof shippingFee === 'number') {
+    totalAmount += shippingFee
+    order.shippingFee = shippingFee
+  } else {
+    order.shippingFee = undefined
+  }
 
+  // ✅ 加上折扣
+  const isValidCoupon = coupon && typeof coupon.discount === 'number'
+  if (isValidCoupon) {
+    totalAmount -= coupon.discount
+    order.coupon = coupon
+  } else {
+    order.coupon = undefined  // ❗️避免存入空物件 {}
+  }
+
+  // ✅ 設定運送方式
+  if (shippingMethod && typeof shippingMethod === 'string' && shippingMethod.trim() !== '') {
+    order.shippingMethod = shippingMethod
+  } else {
+    order.shippingMethod = undefined
+  }
+
+  // ✅ 更新其他欄位
   order.products = fullProducts
-  order.shippingMethod = shippingMethod
-  order.shippingFee = shippingFee
   order.totalAmount = totalAmount
-  order.coupon = coupon
   order.createdAt = new Date()
 
+  // ✅ 儲存並回傳更新後的訂單
   await user.save()
-  res.json({ message: 'Order updated' })
+  res.json({
+    message: 'Order updated',
+    order
+  })
 })
+
 
 // 刪除訂單
 app.delete('/order/:orderId', authenticateToken, async (req, res) => {
