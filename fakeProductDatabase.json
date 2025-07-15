@@ -1,5 +1,7 @@
 {
   "123": { "name": "T-shirt", "imageUrl": "https://m.media-amazon.com/images/I/61s2-ts3f3L._AC_SY741_.jpg", "price": 500 },
   "456": { "name": "Sneakers", "imageUrl": "https://i.pinimg.com/736x/cc/40/23/cc4023447a65596c3b0f05329c5acdec.jpg", "price": 2000 },
-  "789": { "name": "Cap", "imageUrl": "https://i.pinimg.com/736x/d9/38/43/d938436e9c61250d2b469c8163027f97.jpg", "price": 300 }
+  "789": { "name": "Cap", "imageUrl": "https://i.pinimg.com/736x/d9/38/43/d938436e9c61250d2b469c8163027f97.jpg", "price": 300 },
+  "102": { "name": "T-shirt", "imageUrl": "https://m.media-amazon.com/images/I/61s2-ts3f3L._AC_SY741_.jpg", "price": 500 },
+  "103": { "name": "T-shirt", "imageUrl": "https://m.media-amazon.com/images/I/61s2-ts3f3L._AC_SY741_.jpg", "price": 500 }
 }
