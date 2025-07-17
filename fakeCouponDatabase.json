@@ -1,5 +1,5 @@
 {
-'123': { code: '折扣20', discount: 20 },
-'456': { code: '折扣100', discount: 100 },
-'789': { code: '折扣200', discount: 200 }
+"123": { "code": "折扣20", "discount": 20 },
+"456": { "code": "折扣100", "discount": 100 },
+"789": { "code": "折扣200", "discount": 200 }
 }
