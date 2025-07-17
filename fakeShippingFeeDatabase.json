@@ -1,0 +1,5 @@
+{
+  "123": { "shippingMethod": "超商", "ShippingFee": 60 },
+  "456": { "shippingMethod": "宅配", "ShippingFee": 100 },
+  "789": { "shippingMethod": "自取", "ShippingFee": 0 }
+}
