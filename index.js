@@ -44,13 +44,27 @@ let fakeProductDatabase = {}
 const loadFakeProducts = async () => {
   try {
     const res = await fetch('https://raw.githubusercontent.com/perfectism-co/easyBuy/main/fakeProductDatabase.json')
-    fakeProductDatabase = await res.json()
+    const json = await res.json()
+
+    // ✅ 轉成 { [productId]: 商品資料 }
+    fakeProductDatabase = {}
+    for (const item of json.products) {
+      fakeProductDatabase[item.id] = {
+        productId: item.id,      // ✅ 統一成 productId（後端都用這個）
+        name: item.name,
+        imageUrl: item.imageUrl,
+        price: item.price,
+        category: item.category
+      }
+    }
+
     console.log('✅ 假商品資料載入成功')
   } catch (err) {
     console.error('❌ 假商品資料載入失敗:', err.message)
-    fakeProductDatabase = {} // 設為空物件避免 crash
+    fakeProductDatabase = {}
   }
 }
+
 
 // 假優惠券資料庫
 const fakeCouponDatabase = {
