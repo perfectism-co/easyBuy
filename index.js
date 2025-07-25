@@ -83,7 +83,7 @@ const fakeShippingFeeDatabase = {
 
 // Schemas
 const orderSchema = new mongoose.Schema({
-  products: [{ productId: String, name: String, imageUrl: String, price: Number, quantity: Number }],
+  products: [{ productId: String, name: String, imageUrl: [String], price: Number, quantity: Number }],
   shippingMethod: String,
   createdAt: Date,
   totalAmount: Number,
@@ -97,7 +97,7 @@ const orderSchema = new mongoose.Schema({
 })
 
 const cartSchema = new mongoose.Schema({
-  products: [{ productId: String, name: String, imageUrl: String, price: Number, quantity: Number }]
+  products: [{ productId: String, name: String, imageUrl: [String], price: Number, quantity: Number }]
 })
 
 const userSchema = new mongoose.Schema({
