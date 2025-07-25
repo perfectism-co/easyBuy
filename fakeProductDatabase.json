@@ -1,28 +1,28 @@
 {
   "products": [            
-    { "id":"1", "name": "Classic City Ringer T-Shirt Light Beige color 100% Cotton", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/1200x/37/51/70/375170a23a884381e6f4e809e0a505ea.jpg", "price": 510 },
-    { "id":"2", "name": "Abercrombie & Fitch ", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/1200x/60/25/89/602589eb3cd994f19982b487cd17636b.jpg", "price": 520 },
-    { "id":"3", "name": "RUSSELL ATHLETIC T-Shirt", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/1200x/b9/f7/f6/b9f7f67c30d85a24a5c092ddac3e6fd6.jpg", "price": 530 },
-    { "id":"4", "name": "Classic City Ringer T-shirt_Navy", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/1200x/75/19/b3/7519b34c120cbaaafe80fec8961b8c52.jpg", "price": 540 },
-    { "id":"5", "name": "ALASKA T-shirt", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/1200x/00/e6/49/00e6499c56993519144b2257af16fa47.jpg", "price": 550 },
-    { "id":"6", "name": "BANFF T-shirt", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/1200x/8c/9e/9d/8c9e9ddbe528e65a7ef73c99e2e65406.jpg", "price": 560 },
-    { "id":"7", "name": "BOTANIQUE T-shirt", "category":"T-shirt", "imageUrl": "https://i.pinimg.com/736x/fc/27/17/fc2717f7cbcb1fd6816deeed62543133.jpg", "price": 500 },
+    { "id":"1", "name": "Classic City Ringer T-Shirt Light Beige color 100% Cotton", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/1200x/37/51/70/375170a23a884381e6f4e809e0a505ea.jpg", "https://i.pinimg.com/1200x/79/24/51/792451ea78f08936272347a19372ac00.jpg"], "price": 510 },
+    { "id":"2", "name": "Abercrombie & Fitch ", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/1200x/60/25/89/602589eb3cd994f19982b487cd17636b.jpg","https://i.pinimg.com/736x/e5/c9/dc/e5c9dce326a3946cba9e6aaaddcd8960.jpg", "https://i.pinimg.com/1200x/c2/97/47/c29747091dddc05f6a7d3d35f413aff2.jpg", "https://i.pinimg.com/1200x/4b/c5/4d/4bc54d415a67eac1a427453a5a595ad0.jpg"], "price": 520 },
+    { "id":"3", "name": "RUSSELL ATHLETIC T-Shirt", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/1200x/b9/f7/f6/b9f7f67c30d85a24a5c092ddac3e6fd6.jpg","https://i.pinimg.com/736x/69/df/de/69dfde7d5db7731bccb3572fd815e9b0.jpg"], "price": 530 },
+    { "id":"4", "name": "Classic City Ringer T-shirt_Navy", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/1200x/75/19/b3/7519b34c120cbaaafe80fec8961b8c52.jpg", "https://i.pinimg.com/474x/d3/e4/21/d3e42186adb4e81adb8b2eb1c1427ca0.jpg"], "price": 540 },
+    { "id":"5", "name": "ALASKA T-shirt", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/1200x/00/e6/49/00e6499c56993519144b2257af16fa47.jpg"], "price": 550 },
+    { "id":"6", "name": "BANFF T-shirt", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/1200x/8c/9e/9d/8c9e9ddbe528e65a7ef73c99e2e65406.jpg"], "price": 560 },
+    { "id":"7", "name": "BOTANIQUE T-shirt", "category":"T-shirt", "imageUrl": ["https://i.pinimg.com/736x/fc/27/17/fc2717f7cbcb1fd6816deeed62543133.jpg"], "price": 500 },
 
-    { "id":"8", "name": "Madewell | Women's New Arrivals", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/736x/cc/40/23/cc4023447a65596c3b0f05329c5acdec.jpg", "price": 2000 },
-    { "id":"9", "name": "PUMA Palermo Sneakers | Anthropologie", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/1200x/17/39/f9/1739f906da14a76290ce95ae2ebd8b46.jpg", "price": 2100 }, 
-    { "id":"10", "name": "Cute Sneakers | Dressy + Casual Sneakers", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/736x/a7/30/99/a730995de53f787131e1998326e78855.jpg", "price": 2200 }, 
-    { "id":"11", "name": "Gola Sneakers", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/736x/77/3a/26/773a26a1dfbd796536acc2a890b2c943.jpg", "price": 2300 }, 
-    { "id":"12", "name": "VEJA x Make My Lemonade", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/736x/be/d8/0e/bed80e47bcac4bbc61c234fc6092d503.jpg", "price": 2400 }, 
-    { "id":"13", "name": "Coolway Goal Sneakers", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/1200x/2d/11/b8/2d11b88d3bf4317f8e5935ef8af17434.jpg", "price": 2500 }, 
-    { "id":"14", "name": "Titolo - Sneaker and streetwear retailer, based in Switzerland", "category":"Sneakers", "imageUrl": "https://i.pinimg.com/1200x/64/25/a7/6425a7c3ef0813477735169b3b69ac9c.jpg", "price": 2600 },        
+    { "id":"8", "name": "Madewell | Women's New Arrivals", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/736x/cc/40/23/cc4023447a65596c3b0f05329c5acdec.jpg"], "price": 2000 },
+    { "id":"9", "name": "PUMA Palermo Sneakers | Anthropologie", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/1200x/17/39/f9/1739f906da14a76290ce95ae2ebd8b46.jpg"], "price": 2100 }, 
+    { "id":"10", "name": "Cute Sneakers | Dressy + Casual Sneakers", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/736x/a7/30/99/a730995de53f787131e1998326e78855.jpg"], "price": 2200 }, 
+    { "id":"11", "name": "Gola Sneakers", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/736x/77/3a/26/773a26a1dfbd796536acc2a890b2c943.jpg"], "price": 2300 }, 
+    { "id":"12", "name": "VEJA x Make My Lemonade", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/736x/be/d8/0e/bed80e47bcac4bbc61c234fc6092d503.jpg"], "price": 2400 }, 
+    { "id":"13", "name": "Coolway Goal Sneakers", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/1200x/2d/11/b8/2d11b88d3bf4317f8e5935ef8af17434.jpg"], "price": 2500 }, 
+    { "id":"14", "name": "Titolo - Sneaker and streetwear retailer, based in Switzerland", "category":"Sneakers", "imageUrl": ["https://i.pinimg.com/1200x/64/25/a7/6425a7c3ef0813477735169b3b69ac9c.jpg"], "price": 2600 },        
 
-    { "id":"15", "name": "Rhude x McLaren Racing Is Arriving Sooner Than You Think", "category":"Cap", "imageUrl": "https://i.pinimg.com/736x/d9/38/43/d938436e9c61250d2b469c8163027f97.jpg", "price": 300 },
-    { "id":"16", "name": "Al Fresco Cap", "category":"Cap", "imageUrl": "https://i.pinimg.com/736x/11/39/4b/11394b7cb9cac56fa915361c252c4b42.jpg", "price": 310 },
-    { "id":"17", "name": "JETS Cap| Green", "category":"Cap", "imageUrl": "https://i.pinimg.com/1200x/0d/2b/83/0d2b832d489f658106d2c0579aae3bcd.jpg", "price": 320 },
-    { "id":"18", "name": "Nahmaré Cap", "category":"Cap", "imageUrl": "https://i.pinimg.com/736x/95/cf/1d/95cf1dbbc9b5f93cd4b3c4c49ab0d8e5.jpg", "price": 330 },
-    { "id":"19", "name": "ADERERROR Cap", "category":"Cap", "imageUrl": "https://i.pinimg.com/1200x/ed/81/8e/ed818e0e8838696de257243ba39206fd.jpg", "price": 340 },
-    { "id":"20", "name": "Camel 'A' applique Cap", "category":"Cap", "imageUrl": "https://i.pinimg.com/1200x/bf/65/5d/bf655dd25573a168bb28cca1e760469f.jpg", "price": 350 },
-    { "id":"21", "name": "TEXAS Cap", "category":"Cap", "imageUrl": "https://i.pinimg.com/736x/42/d2/e1/42d2e17745fa4a72f970b6f91019d394.jpg", "price": 360 }
+    { "id":"15", "name": "Rhude x McLaren Racing Is Arriving Sooner Than You Think", "category":"Cap", "imageUrl": ["https://i.pinimg.com/736x/d9/38/43/d938436e9c61250d2b469c8163027f97.jpg"], "price": 300 },
+    { "id":"16", "name": "Al Fresco Cap", "category":"Cap", "imageUrl": ["https://i.pinimg.com/736x/11/39/4b/11394b7cb9cac56fa915361c252c4b42.jpg"], "price": 310 },
+    { "id":"17", "name": "JETS Cap| Green", "category":"Cap", "imageUrl": ["https://i.pinimg.com/1200x/0d/2b/83/0d2b832d489f658106d2c0579aae3bcd.jpg"], "price": 320 },
+    { "id":"18", "name": "Nahmaré Cap", "category":"Cap", "imageUrl": ["https://i.pinimg.com/736x/95/cf/1d/95cf1dbbc9b5f93cd4b3c4c49ab0d8e5.jpg"], "price": 330 },
+    { "id":"19", "name": "ADERERROR Cap", "category":"Cap", "imageUrl": ["https://i.pinimg.com/1200x/ed/81/8e/ed818e0e8838696de257243ba39206fd.jpg"], "price": 340 },
+    { "id":"20", "name": "Camel 'A' applique Cap", "category":"Cap", "imageUrl": ["https://i.pinimg.com/1200x/bf/65/5d/bf655dd25573a168bb28cca1e760469f.jpg"], "price": 350 },
+    { "id":"21", "name": "TEXAS Cap", "category":"Cap", "imageUrl": ["https://i.pinimg.com/736x/42/d2/e1/42d2e17745fa4a72f970b6f91019d394.jpg"], "price": 360 }
   ]
 }
 
